@@ -1,0 +1,39 @@
+{
+  "name": "dagna-monorepo",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Dagna (ዳኛ) - Online Judge and Contest Platform for Competitive Programmers",
+  "workspaces": [
+    "packages/shared",
+    "server",
+    "worker",
+    "judge",
+    "web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yaml,yml}\"",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:worker": "npm run dev --workspace=worker",
+    "dev:judge": "npm run dev --workspace=judge",
+    "dev:web": "npm run dev --workspace=web"
+  },
+  "keywords": [
+    "online-judge",
+    "competitive-programming",
+    "icpc",
+    "oi",
+    "sandbox",
+    "codeforces-rating"
+  ],
+  "author": "Dagna Team",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  }
+}

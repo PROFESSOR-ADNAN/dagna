@@ -1,0 +1,57 @@
+# Multi-stage Dockerfile for Dagna Judge Agent & Sandbox Environment
+FROM ubuntu:24.04 AS runner
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NODE_ENV=production
+
+# Install compilers, runtimes, cgroup tools, and utilities
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc-13 \
+    g++-13 \
+    python3 \
+    python3-minimal \
+    openjdk-21-jre-headless \
+    curl \
+    ca-certificates \
+    libcap2-bin \
+    uidmap \
+    iproute2 \
+    procps \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up GCC alternatives
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+
+WORKDIR /app
+
+# Create unprivileged judge user (UID 1001)
+RUN groupadd -g 1001 dagna-judge && \
+    useradd -u 1001 -g dagna-judge -m -s /bin/bash dagna-judge
+
+# Set up scratch and cache directories
+RUN mkdir -p /app/judge/scratch /app/judge/cache && \
+    chown -R dagna-judge:dagna-judge /app
+
+COPY package.json tsconfig.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/shared/tsconfig.json ./packages/shared/
+COPY judge/package.json ./judge/
+COPY judge/tsconfig.json ./judge/
+
+RUN npm install
+
+COPY packages/shared/src ./packages/shared/src
+COPY judge/src ./judge/src
+COPY judge/bin ./judge/bin
+
+RUN npm run build --workspace=packages/shared && \
+    npm run build --workspace=judge
+
+USER dagna-judge
+
+CMD ["node", "judge/dist/agent/agent.js"]

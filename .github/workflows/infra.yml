@@ -1,0 +1,20 @@
+name: Infrastructure Validation
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+
+jobs:
+  validate-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+      - name: Validate Terraform Syntax
+        run: |
+          cd infra/terraform
+          terraform init -backend=false
+          terraform validate

@@ -1,0 +1,45 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrant configuration for Dagna Judge Sandbox Dev VM
+# Provides an isolated Linux environment with full cgroup v2 and unprivileged user namespaces
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/noble64" # Ubuntu 24.04 LTS (Noble Numbat)
+
+  config.vm.network "private_network", ip: "10.100.0.2"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "dagna-judge-dev-vm"
+    vb.cpus = 4
+    vb.memory = 4096
+    vb.customize ["modifyvm", :id, "--nested-hw-virt", "off"]
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    echo "[DAGNA DEV-VM] Provisioning Judge Node..."
+
+    # Ensure system packages & cgroups v2
+    apt-get update
+    apt-get install -y build-essential gcc g++ python3 openjdk-21-jre-headless curl git wireguard
+
+    # Install Node.js 22 LTS
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    apt-get install -y nodejs
+
+    # Verify cgroup v2 controllers
+    if grep -q "memory" /sys/fs/cgroup/cgroup.controllers; then
+      echo "[DAGNA DEV-VM] cgroup v2 verified with memory/cpu/pids controllers."
+    else
+      echo "[DAGNA DEV-VM] WARNING: cgroup v2 controllers missing."
+    fi
+
+    # Create dagna-judge unprivileged user
+    useradd -u 1001 -m -s /bin/bash dagna-judge || true
+    mkdir -p /sys/fs/cgroup/dagna
+    chown -R dagna-judge:dagna-judge /sys/fs/cgroup/dagna
+
+    echo "[DAGNA DEV-VM] Provisioning complete. Ready to run hostile test suite."
+  SHELL
+end

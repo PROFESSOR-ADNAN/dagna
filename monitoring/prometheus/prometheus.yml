@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "/etc/prometheus/alerts.yml"
+
+scrape_configs:
+  - job_name: "dagna-api"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["api-1:4000", "api-2:4000"]
+
+  - job_name: "dagna-worker"
+    static_configs:
+      - targets: ["worker:4002"]
+
+  - job_name: "dagna-judge-nodes"
+    static_configs:
+      - targets: ["10.100.0.2:9100"] # Node exporter over WireGuard tunnel

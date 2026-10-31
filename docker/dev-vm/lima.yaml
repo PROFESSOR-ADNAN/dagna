@@ -1,0 +1,27 @@
+# Lima template for Dagna Judge Sandbox VM on macOS (Apple Silicon / Intel)
+vmType: "qemu"
+os: "linux"
+arch: "default"
+images:
+  - location: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+    arch: "x86_64"
+  - location: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64.img"
+    arch: "aarch64"
+cpus: 4
+memory: "4GiB"
+disk: "40GiB"
+mounts:
+  - location: "~"
+    writable: false
+  - location: "/tmp/lima"
+    writable: true
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      apt-get update && apt-get install -y build-essential gcc g++ python3 openjdk-21-jre-headless curl git
+      curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+      apt-get install -y nodejs
+      useradd -u 1001 -m -s /bin/bash dagna-judge || true
+      mkdir -p /sys/fs/cgroup/dagna
+      chown -R dagna-judge:dagna-judge /sys/fs/cgroup/dagna

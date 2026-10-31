@@ -1,0 +1,52 @@
+---
+- name: Hardening sysctl settings
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    # Disable swap completely for deterministic memory limits
+    - { name: "vm.swappiness", value: "0" }
+    # Protect against SYN flood attacks
+    - { name: "net.ipv4.tcp_syncookies", value: "1" }
+    # Disable ICMP redirect acceptance
+    - { name: "net.ipv4.conf.all.accept_redirects", value: "0" }
+    # Prevent IP spoofing
+    - { name: "net.ipv4.conf.all.rp_filter", value: "1" }
+    # Prevent unprivileged ptrace
+    - { name: "kernel.yama.ptrace_scope", value: "2" }
+
+- name: Setup UFW firewall on Judge Host (Zero public inbound ports)
+  when: inventory_hostname in groups['judge_nodes']
+  block:
+    - name: Set UFW default policies
+      ufw:
+        direction: "{{ item.direction }}"
+        policy: "{{ item.policy }}"
+      loop:
+        - { direction: 'incoming', policy: 'deny' }
+        - { direction: 'outgoing', policy: 'allow' }
+
+    - name: Allow WireGuard traffic exclusively from Core Host
+      ufw:
+        rule: allow
+        interface: wg0
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+
+- name: Delegate cgroup v2 subtree for dagna-judge user
+  when: inventory_hostname in groups['judge_nodes']
+  block:
+    - name: Create systemd cgroup delegation override
+      copy:
+        dest: /etc/systemd/system/user-1001.slice.d/override.conf
+        content: |
+          [Slice]
+          Delegate=yes
+        owner: root
+        group: root
+        mode: '0644'
+  notify: Reload systemd

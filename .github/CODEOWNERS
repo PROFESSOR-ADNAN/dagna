@@ -1,0 +1,5 @@
+# Security critical directories require staff review
+judge/src/sandbox/   @PROFESSOR-ADNAN
+server/src/routes/judge.routes.ts @PROFESSOR-ADNAN
+tests/sandbox/hostile/ @PROFESSOR-ADNAN
+infra/ @PROFESSOR-ADNAN

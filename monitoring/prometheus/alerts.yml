@@ -1,0 +1,38 @@
+groups:
+  - name: dagna-critical-alerts
+    rules:
+      - alert: HighQueueWaitTime
+        expr: dagna_queue_oldest_job_age_seconds{priority="0"} > 60
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Contest judging queue backlog breached 60 seconds"
+          description: "Contest submissions are waiting > 60s in MongoDB lease queue. Add judge nodes immediately."
+
+      - alert: JudgeNodeMissingHeartbeat
+        expr: time() - dagna_judge_last_heartbeat_timestamp_seconds > 35
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Judge Node missing heartbeat"
+          description: "Judge node {{ $labels.node_id }} has not reported heartbeat for > 35s. Possible network or host outage."
+
+      - alert: SandboxHygieneFailure
+        expr: increase(dagna_sandbox_hygiene_failures_total[1m]) > 0
+        for: 0s
+        labels:
+          severity: page_sev1
+        annotations:
+          summary: "CRITICAL SEV1: Sandbox hygiene failure or potential escape"
+          description: "Residual processes or mounts detected after sandbox termination on node {{ $labels.node_id }}. Quarantined."
+
+      - alert: CpuStealHigh
+        expr: rate(node_cpu_seconds_total{mode="steal"}[1m]) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU steal exceeds 5% on Judge Host"
+          description: "Hypervisor timing noise is high, timing accuracy may degrade."

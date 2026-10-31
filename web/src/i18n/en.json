@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "problems": "Problems",
+    "contests": "Contests",
+    "leaderboard": "Leaderboard",
+    "groups": "Groups",
+    "login": "Sign In",
+    "register": "Sign Up",
+    "logout": "Sign Out",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "problem": {
+    "title": "Problem Archive",
+    "difficulty": "Difficulty",
+    "tags": "Tags",
+    "submit": "Submit Code",
+    "statement": "Statement",
+    "inputFormat": "Input Format",
+    "outputFormat": "Output Format",
+    "samples": "Sample Tests",
+    "notes": "Notes",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "language": "Language",
+    "mySubmissions": "My Submissions"
+  },
+  "contest": {
+    "title": "Contests",
+    "upcoming": "Upcoming",
+    "running": "Running",
+    "past": "Past",
+    "register": "Register",
+    "registered": "Registered",
+    "scoreboard": "Scoreboard",
+    "clarifications": "Clarifications",
+    "freezeBanner": "The scoreboard is currently frozen. Standings will reveal upon contest conclusion.",
+    "rank": "Rank",
+    "participant": "Participant",
+    "solved": "Solved",
+    "penalty": "Penalty"
+  },
+  "common": {
+    "serverSync": "Server Time Sync",
+    "search": "Search...",
+    "status": "Status",
+    "time": "Time",
+    "memory": "Memory",
+    "verdict": "Verdict",
+    "loading": "Loading..."
+  }
+}

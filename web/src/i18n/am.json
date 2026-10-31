@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "problems": "ችግሮች (Problems)",
+    "contests": "ውድድሮች (Contests)",
+    "leaderboard": "ደረጃ ሰንጠረዥ (Leaderboard)",
+    "groups": "ቡድኖች (Groups)",
+    "login": "ግባ (Sign In)",
+    "register": "ተመዝገብ (Sign Up)",
+    "logout": "ውጣ (Sign Out)",
+    "profile": "መገለጫ (Profile)",
+    "admin": "አስተዳዳሪ (Admin)"
+  },
+  "problem": {
+    "title": "የችግሮች መዝገብ",
+    "difficulty": "ክብደት (Difficulty)",
+    "tags": "መለያዎች (Tags)",
+    "submit": "ኮድ ላክ (Submit Code)",
+    "statement": "መግለጫ (Statement)",
+    "inputFormat": "የግቤት ቅርጸት (Input Format)",
+    "outputFormat": "የውጤት ቅርጸት (Output Format)",
+    "samples": "ምሳሌዎች (Sample Tests)",
+    "notes": "ማስታወሻዎች (Notes)",
+    "copy": "ቅዳ (Copy)",
+    "copied": "ተቀድቷል!",
+    "language": "ቋንቋ (Language)",
+    "mySubmissions": "የእኔ ሙከራዎች"
+  },
+  "contest": {
+    "title": "ውድድሮች",
+    "upcoming": "የሚመጡ",
+    "running": "በሂደት ላይ ያሉ",
+    "past": "ያለፉ",
+    "register": "ተመዝገብ",
+    "registered": "ተመዝግበዋል",
+    "scoreboard": "የውጤት ሰሌዳ",
+    "clarifications": "ማብራሪያዎች",
+    "freezeBanner": "የውጤት ሰሌዳው ለጊዜው ቆሟል። ሙሉ ውጤት ውድድሩ ሲጠናቀቅ ይፋ ይሆናል።",
+    "rank": "ደረጃ",
+    "participant": "ተወዳዳሪ",
+    "solved": "የተፈቱ",
+    "penalty": "ቅጣት (Penalty)"
+  },
+  "common": {
+    "serverSync": "የሰርቨር ሰዓት ማመሳሰያ",
+    "search": "ፈልግ...",
+    "status": "ሁኔታ",
+    "time": "የፈጀው ጊዜ",
+    "memory": "ማህደረ ትውስታ",
+    "verdict": "ውሳኔ (Verdict)",
+    "loading": "በመጫን ላይ..."
+  }
+}

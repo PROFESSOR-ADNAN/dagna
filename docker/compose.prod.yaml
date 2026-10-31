@@ -1,0 +1,152 @@
+services:
+  # Nginx Reverse Proxy & Static Host
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: dagna-prod-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../nginx/snippets:/etc/nginx/snippets:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - web_dist:/usr/share/nginx/html:ro
+    depends_on:
+      api-1:
+        condition: service_healthy
+      api-2:
+        condition: service_healthy
+    networks:
+      - core-frontend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+  # Public API Replica 1
+  api-1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: dagna-prod-api-1
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      PORT: 4000
+      INSTANCE_ID: api-1
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - core-frontend
+      - core-backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 384M
+
+  # Public API Replica 2 (for zero-downtime rolling deploys)
+  api-2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: dagna-prod-api-2
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      PORT: 4000
+      INSTANCE_ID: api-2
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - core-frontend
+      - core-backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 384M
+
+  # Background Worker (Standings, Ratings, Outbox Relay, Rejudges)
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    container_name: dagna-prod-worker
+    restart: unless-stopped
+    env_file: ../.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - core-backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+
+  # Core MongoDB Instance
+  mongodb:
+    image: mongo:7.0
+    container_name: dagna-prod-mongo
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip", "0.0.0.0", "--wiredTigerCacheSizeGB", "1"]
+    volumes:
+      - mongo_prod_data:/data/db
+    networks:
+      - core-backend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1536M
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "rs.status().ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Core Redis Instance
+  redis:
+    image: redis:7.2-alpine
+    container_name: dagna-prod-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "384mb", "--maxmemory-policy", "volatile-lru"]
+    volumes:
+      - redis_prod_data:/data
+    networks:
+      - core-backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+networks:
+  core-frontend:
+    driver: bridge
+  core-backend:
+    internal: true
+    driver: bridge
+
+volumes:
+  mongo_prod_data:
+  redis_prod_data:
+  web_dist:

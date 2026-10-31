@@ -1,0 +1,21 @@
+{
+  "name": "dagna-judge",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "dagna-sandbox": "./bin/dagna-sandbox.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/agent/agent.js",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@dagna/shared": "^1.0.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
