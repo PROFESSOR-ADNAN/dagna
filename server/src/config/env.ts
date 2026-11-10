@@ -23,9 +23,17 @@ const envSchema = z.object({
   CHAPA_SECRET_KEY: z.string().optional().default(''),
   CHAPA_PUBLIC_KEY: z.string().optional().default(''),
   CHAPA_WEBHOOK_SECRET: z.string().optional().default(''),
+  CHAPA_ENCRYPTION_KEY: z.string().optional().default(''),
 });
 
-const parsed = envSchema.safeParse(process.env);
+const rawEnv = {
+  ...process.env,
+  MONGODB_URI: process.env.MONGODB_URI || process.env.MONGO_URI,
+  REDIS_URL: process.env.REDIS_URL || process.env.REDIS_URI,
+  CHAPA_WEBHOOK_SECRET: process.env.CHAPA_WEBHOOK_SECRET || process.env.CHAPA_ENCRYPTION_KEY,
+};
+
+const parsed = envSchema.safeParse(rawEnv);
 
 if (!parsed.success) {
   console.error('CRITICAL: Invalid environment configuration:', parsed.error.format());

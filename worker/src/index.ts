@@ -5,7 +5,7 @@ import { DagnaScheduler } from './schedulers/scheduler.js';
 
 dotenv.config();
 
-const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/dagna?replicaSet=rs0';
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/dagna?replicaSet=rs0';
 
 async function bootstrap() {
   console.log('[DAGNA-WORKER] Connecting to MongoDB...');
