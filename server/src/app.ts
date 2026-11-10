@@ -11,6 +11,7 @@ import { userRouter } from './routes/user.routes.js';
 import { adminRouter } from './routes/admin.routes.js';
 import { streamRouter } from './routes/stream.routes.js';
 import { judgeRouter } from './routes/judge.routes.js';
+import { paymentRouter } from './routes/payment.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp(): Express {
@@ -51,6 +52,7 @@ export function createApp(): Express {
   app.use('/api/v1/groups', groupRouter);
   app.use('/api/v1/users', userRouter);
   app.use('/api/v1/admin', adminRouter);
+  app.use('/api/v1/payments', paymentRouter);
   app.use('/api/v1', streamRouter);
 
   // Private Judge Gateway surface (v1)

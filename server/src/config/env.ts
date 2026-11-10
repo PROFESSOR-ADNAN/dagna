@@ -10,6 +10,7 @@ const envSchema = z.object({
   JUDGE_GATEWAY_HOST: z.string().default('127.0.0.1'),
   WIREGUARD_INTERFACE_IP: z.string().default('10.100.0.1'),
   MONGODB_URI: z.string().default('mongodb://127.0.0.1:27017/dagna?replicaSet=rs0'),
+  REDIS_URL: z.string().optional().default(''),
   REDIS_HOST: z.string().default('127.0.0.1'),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASSWORD: z.string().optional().default(''),
@@ -19,6 +20,9 @@ const envSchema = z.object({
   JUDGE_NODE_TOKEN: z.string().default('node_token_dev_secret_fencing_token_testing_only'),
   JUDGING_ENABLED: z.coerce.boolean().default(true),
   DOUBLE_JUDGE_CONTEST_AC: z.coerce.boolean().default(false),
+  CHAPA_SECRET_KEY: z.string().optional().default(''),
+  CHAPA_PUBLIC_KEY: z.string().optional().default(''),
+  CHAPA_WEBHOOK_SECRET: z.string().optional().default(''),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -5,10 +5,6 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://api.dagna.example.com/api/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

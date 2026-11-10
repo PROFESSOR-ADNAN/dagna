@@ -61,6 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await apiRequest('/auth/logout', { method: 'POST' });
     } catch {}
     localStorage.removeItem('dagna_access_token');
+    localStorage.removeItem('dagna_refresh_token');
     setUser(null);
   };
 

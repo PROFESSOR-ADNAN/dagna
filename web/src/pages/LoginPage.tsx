@@ -25,6 +25,9 @@ export const LoginPage: React.FC = () => {
       });
 
       if (data.success) {
+        if (data.refreshToken) {
+          localStorage.setItem('dagna_refresh_token', data.refreshToken);
+        }
         login(data.accessToken, data.user);
         navigate('/');
       }

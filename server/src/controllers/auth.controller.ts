@@ -11,7 +11,7 @@ const REFRESH_COOKIE_NAME = 'dagna_refresh';
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  sameSite: (env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
   path: '/api/v1/auth',
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
@@ -58,6 +58,7 @@ export class AuthController {
       res.status(200).json({
         success: true,
         accessToken,
+        refreshToken: rawRefreshToken,
         user: {
           id: user._id,
           handle: user.handle,
@@ -75,7 +76,7 @@ export class AuthController {
 
   static async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const rawRefreshToken = req.cookies[REFRESH_COOKIE_NAME] || req.body.refreshToken;
+      const rawRefreshToken = req.cookies[REFRESH_COOKIE_NAME] || req.body?.refreshToken;
       if (!rawRefreshToken) {
         res.status(401).json({ success: false, message: 'Missing refresh token' });
         return;
@@ -88,6 +89,7 @@ export class AuthController {
       res.status(200).json({
         success: true,
         accessToken,
+        refreshToken: newRefresh,
         user: {
           id: user._id,
           handle: user.handle,
@@ -102,7 +104,7 @@ export class AuthController {
 
   static async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const rawRefreshToken = req.cookies[REFRESH_COOKIE_NAME];
+      const rawRefreshToken = req.cookies[REFRESH_COOKIE_NAME] || req.body?.refreshToken;
       await AuthService.logout(rawRefreshToken);
       res.clearCookie(REFRESH_COOKIE_NAME, COOKIE_OPTIONS);
       res.status(200).json({ success: true, message: 'Logged out successfully' });
