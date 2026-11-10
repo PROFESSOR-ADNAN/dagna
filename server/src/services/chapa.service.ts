@@ -129,18 +129,30 @@ export class ChapaService {
   }
 
   public static verifyWebhookSignature(signature: string | undefined, rawPayload: string): boolean {
-    if (!env.CHAPA_WEBHOOK_SECRET) {
-      return true; // If no secret configured, bypass HMAC check in non-strict mode
+    const secret = env.CHAPA_WEBHOOK_SECRET || env.CHAPA_SECRET_KEY;
+    if (!secret) {
+      return true; // If no secret configured, bypass HMAC check
     }
     if (!signature) {
       return false;
     }
 
-    const expectedHash = crypto
-      .createHmac('sha256', env.CHAPA_WEBHOOK_SECRET)
-      .update(rawPayload)
-      .digest('hex');
+    const testSecrets = [env.CHAPA_WEBHOOK_SECRET, env.CHAPA_SECRET_KEY].filter(Boolean) as string[];
 
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedHash));
+    for (const s of testSecrets) {
+      const expectedHash = crypto
+        .createHmac('sha256', s)
+        .update(rawPayload)
+        .digest('hex');
+
+      const sigBuffer = Buffer.from(signature, 'utf8');
+      const expectedBuffer = Buffer.from(expectedHash, 'utf8');
+
+      if (sigBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

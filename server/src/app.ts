@@ -37,7 +37,14 @@ export function createApp(): Express {
 
   app.use(cors({ origin: true, credentials: true }));
   app.use(cookieParser());
-  app.use(express.json({ limit: '128kb' })); // Max JSON size strictly bounded
+  app.use(
+    express.json({
+      limit: '128kb',
+      verify: (req: any, _res, buf) => {
+        req.rawBody = buf.toString('utf-8');
+      },
+    })
+  );
 
   // Health endpoint for Docker and Load Balancers
   app.get('/healthz', (_req, res) => {

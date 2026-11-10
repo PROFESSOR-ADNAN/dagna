@@ -78,20 +78,20 @@ export class PaymentController {
 
   static async webhook(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const signature = req.headers['chapa-signature'] as string | undefined;
-      const rawPayload = JSON.stringify(req.body);
+      const signature = (req.headers['x-chapa-signature'] || req.headers['chapa-signature']) as string | undefined;
+      const rawPayload = (req as any).rawBody || JSON.stringify(req.body);
 
-      if (env.CHAPA_WEBHOOK_SECRET && !ChapaService.verifyWebhookSignature(signature, rawPayload)) {
+      if ((env.CHAPA_WEBHOOK_SECRET || env.CHAPA_SECRET_KEY) && !ChapaService.verifyWebhookSignature(signature, rawPayload)) {
         res.status(401).json({ success: false, message: 'Invalid webhook signature' });
         return;
       }
 
-      const { tx_ref, status } = req.body;
-      if (tx_ref) {
-        await ChapaService.verifyPayment(tx_ref);
+      const txRef = req.body?.tx_ref || req.body?.reference || req.body?.trx_ref;
+      if (txRef) {
+        await ChapaService.verifyPayment(txRef);
       }
 
-      res.status(200).json({ success: true, message: 'Webhook received' });
+      res.status(200).json({ success: true, message: 'Webhook received and processed' });
     } catch (err) {
       next(err);
     }
