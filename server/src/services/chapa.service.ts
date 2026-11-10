@@ -46,8 +46,12 @@ export class ChapaService {
 
     if (params.firstName) bodyPayload.first_name = params.firstName;
     if (params.lastName) bodyPayload.last_name = params.lastName;
-    if (params.callbackUrl) bodyPayload.callback_url = params.callbackUrl;
-    if (params.returnUrl) bodyPayload.return_url = params.returnUrl;
+    
+    const defaultCallback = `${(process.env.API_URL || 'https://dagna-api.onrender.com').replace(/\/+$/, '')}/api/v1/payments/webhook`;
+    const defaultReturn = `${(process.env.WEB_URL || 'https://dagna.vercel.app').replace(/\/+$/, '')}/profile`;
+    
+    bodyPayload.callback_url = params.callbackUrl || defaultCallback;
+    bodyPayload.return_url = params.returnUrl || defaultReturn;
 
     const response = await fetch(`${CHAPA_API_URL}/transaction/initialize`, {
       method: 'POST',

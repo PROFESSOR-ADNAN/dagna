@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    buildCommand: npm install && npm run build --workspace=packages/shared && npm run build --workspace=server
+    buildCommand: npm install --include=dev && npm run build --workspace=packages/shared && npm run build --workspace=server
     startCommand: node server/dist/server.js
     healthCheckPath: /healthz
     envVars:
@@ -12,6 +12,8 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: API_URL
+        value: https://dagna-api.onrender.com
       - key: MONGODB_URI
         sync: false
       - key: REDIS_URL
