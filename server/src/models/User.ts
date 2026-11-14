@@ -9,6 +9,12 @@ export interface IUser extends Document {
   role: UserRole;
   isEmailVerified: boolean;
   emailVerificationToken?: string;
+  emailVerificationCode?: string;
+  emailVerificationExpires?: Date;
+  phone?: string;
+  isPhoneVerified: boolean;
+  phoneVerificationCode?: string;
+  phoneVerificationExpires?: Date;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
   rating: number;
@@ -62,6 +68,32 @@ const UserSchema = new Schema<IUser>(
     },
     emailVerificationToken: {
       type: String,
+      select: false,
+    },
+    emailVerificationCode: {
+      type: String,
+      select: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      select: false,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      sparse: true,
+      index: true,
+    },
+    isPhoneVerified: {
+      type: Boolean,
+      default: false,
+    },
+    phoneVerificationCode: {
+      type: String,
+      select: false,
+    },
+    phoneVerificationExpires: {
+      type: Date,
       select: false,
     },
     passwordResetToken: {

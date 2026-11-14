@@ -24,6 +24,15 @@ const envSchema = z.object({
   CHAPA_PUBLIC_KEY: z.string().optional().default(''),
   CHAPA_WEBHOOK_SECRET: z.string().optional().default(''),
   CHAPA_ENCRYPTION_KEY: z.string().optional().default(''),
+  AFRO_MESSAGE_API_KEY: z.string().optional().default(''),
+  AFRO_MESSAGE_API_URL: z.string().default('https://api.afromessage.com/api/send'),
+  AFRO_MESSAGE_SENDER: z.string().optional().default(''),
+  SMTP_HOST: z.string().default('smtp.gmail.com'),
+  SMTP_PORT: z.coerce.number().default(465),
+  SMTP_SECURE: z.coerce.boolean().default(true),
+  SMTP_USER: z.string().optional().default(''),
+  SMTP_PASS: z.string().optional().default(''),
+  EMAIL_FROM: z.string().default('Dagna Online Judge <iam.professor.adnan@gmail.com>'),
 });
 
 const rawEnv = {
@@ -31,6 +40,11 @@ const rawEnv = {
   MONGODB_URI: process.env.MONGODB_URI || process.env.MONGO_URI,
   REDIS_URL: process.env.REDIS_URL || process.env.REDIS_URI,
   CHAPA_WEBHOOK_SECRET: process.env.CHAPA_WEBHOOK_SECRET || process.env.CHAPA_ENCRYPTION_KEY,
+  AFRO_MESSAGE_API_KEY: process.env.AFRO_MESSAGE_API_KEY || process.env.SMS_API_KEY,
+  AFRO_MESSAGE_API_URL: process.env.AFRO_MESSAGE_API_URL || process.env.SMS_API_URL,
+  SMTP_USER: process.env.SMTP_USER || process.env.EMAIL_USER || process.env.MAIL_USER,
+  SMTP_PASS: process.env.SMTP_PASS || process.env.EMAIL_PASS || process.env.MAIL_PASS,
+  EMAIL_FROM: process.env.EMAIL_FROM || process.env.MAIL_FROM,
 };
 
 const parsed = envSchema.safeParse(rawEnv);

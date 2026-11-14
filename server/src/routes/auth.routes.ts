@@ -23,4 +23,12 @@ router.get('/me', requireAuth, AuthController.me);
 router.post('/mfa/setup', requireAuth, AuthController.setupMfa);
 router.post('/mfa/verify', requireAuth, AuthController.verifyMfa);
 
+// Email verification
+router.post('/email/send-code', requireAuth, AuthController.sendEmailCode);
+router.post('/email/verify', requireAuth, AuthController.verifyEmailCode);
+
+// Phone verification (AfroMessage SMS)
+router.post('/phone/send-code', requireAuth, AuthController.sendPhoneCode);
+router.post('/phone/verify', requireAuth, AuthController.verifyPhoneCode);
+
 export const authRouter = router;

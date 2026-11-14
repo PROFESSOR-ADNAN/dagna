@@ -37,6 +37,22 @@ services:
         sync: false
       - key: CHAPA_WEBHOOK_SECRET
         sync: false
+      - key: AFRO_MESSAGE_API_KEY
+        sync: false
+      - key: AFRO_MESSAGE_API_URL
+        value: https://api.afromessage.com/api/send
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SECURE
+        value: "true"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        value: "Dagna Online Judge <iam.professor.adnan@gmail.com>"
 
   - type: redis
     name: dagna-redis

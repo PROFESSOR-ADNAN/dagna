@@ -5,6 +5,9 @@ import { AuthenticatedRequest } from '../middleware/auth.js';
 import { authenticator } from 'otplib';
 import qrcode from 'qrcode';
 import { env } from '../config/env.js';
+import { EmailService } from '../services/email.service.js';
+import { SmsService } from '../services/sms.service.js';
+import { User } from '../models/User.js';
 
 const REFRESH_COOKIE_NAME = 'dagna_refresh';
 
@@ -31,6 +34,9 @@ export class AuthController {
           displayName: user.displayName,
           email: user.email,
           role: user.role,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified,
+          phone: user.phone,
         },
       });
     } catch (err) {
@@ -67,6 +73,9 @@ export class AuthController {
           role: user.role,
           rating: user.rating,
           isMfaEnabled: user.isMfaEnabled,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified,
+          phone: user.phone,
         },
       });
     } catch (err) {
@@ -125,8 +134,178 @@ export class AuthController {
         rating: req.user?.rating,
         solvedCount: req.user?.solvedCount,
         isMfaEnabled: req.user?.isMfaEnabled,
+        isEmailVerified: req.user?.isEmailVerified,
+        isPhoneVerified: req.user?.isPhoneVerified,
+        phone: req.user?.phone,
       },
     });
+  }
+
+  static async sendEmailCode(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      if (req.user.isEmailVerified) {
+        res.status(400).json({ success: false, message: 'Email is already verified' });
+        return;
+      }
+
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      req.user.emailVerificationCode = code;
+      req.user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+      await req.user.save();
+
+      await EmailService.sendVerificationCode(req.user.email, code, req.user.handle);
+
+      res.status(200).json({
+        success: true,
+        message: 'Verification code sent to your email address.',
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async verifyEmailCode(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const { code } = req.body;
+      if (!code || typeof code !== 'string') {
+        res.status(400).json({ success: false, message: '6-digit verification code is required' });
+        return;
+      }
+
+      // Fetch user with select fields
+      const user = await User.findById(req.user._id).select('+emailVerificationCode +emailVerificationExpires');
+      if (!user) {
+        res.status(404).json({ success: false, message: 'User not found' });
+        return;
+      }
+
+      if (!user.emailVerificationCode || !user.emailVerificationExpires) {
+        res.status(400).json({ success: false, message: 'No pending email verification code found. Please request a new one.' });
+        return;
+      }
+
+      if (new Date() > user.emailVerificationExpires) {
+        res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
+        return;
+      }
+
+      if (user.emailVerificationCode.trim() !== code.trim()) {
+        res.status(400).json({ success: false, message: 'Invalid verification code.' });
+        return;
+      }
+
+      user.isEmailVerified = true;
+      user.emailVerificationCode = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Email address verified successfully!',
+        isEmailVerified: true,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async sendPhoneCode(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const phoneInput = req.body.phone || req.user.phone;
+      if (!phoneInput || typeof phoneInput !== 'string') {
+        res.status(400).json({ success: false, message: 'Valid phone number is required (e.g. 0912345678)' });
+        return;
+      }
+
+      const normalizedPhone = SmsService.normalizePhoneNumber(phoneInput);
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+      req.user.phone = normalizedPhone;
+      req.user.phoneVerificationCode = code;
+      req.user.phoneVerificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+      await req.user.save();
+
+      const smsResult = await SmsService.sendVerificationOtp(normalizedPhone, code);
+      if (!smsResult.success) {
+        res.status(502).json({
+          success: false,
+          message: smsResult.error || 'Failed to send SMS verification code',
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Verification code sent to ${normalizedPhone}`,
+        phone: normalizedPhone,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async verifyPhoneCode(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const { code } = req.body;
+      if (!code || typeof code !== 'string') {
+        res.status(400).json({ success: false, message: '6-digit verification code is required' });
+        return;
+      }
+
+      const user = await User.findById(req.user._id).select('+phoneVerificationCode +phoneVerificationExpires');
+      if (!user) {
+        res.status(404).json({ success: false, message: 'User not found' });
+        return;
+      }
+
+      if (!user.phoneVerificationCode || !user.phoneVerificationExpires) {
+        res.status(400).json({ success: false, message: 'No pending phone verification code found. Please request a new one.' });
+        return;
+      }
+
+      if (new Date() > user.phoneVerificationExpires) {
+        res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
+        return;
+      }
+
+      if (user.phoneVerificationCode.trim() !== code.trim()) {
+        res.status(400).json({ success: false, message: 'Invalid verification code.' });
+        return;
+      }
+
+      user.isPhoneVerified = true;
+      user.phoneVerificationCode = undefined;
+      user.phoneVerificationExpires = undefined;
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Phone number verified successfully!',
+        isPhoneVerified: true,
+      });
+    } catch (err) {
+      next(err);
+    }
   }
 
   static async setupMfa(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
